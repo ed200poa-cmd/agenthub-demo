@@ -50,4 +50,9 @@ def get_provider() -> LLMProvider:
     if choice == "anthropic":
         return AnthropicDirectProvider()
 
-    raise ValueError(f"Unknown LLM_PROVIDER: {choice!r}. Use anthropic.")
+    if choice == "bedrock":
+        from .bedrock_provider import BedrockProvider
+
+        return BedrockProvider()
+
+    raise ValueError(f"Unknown LLM_PROVIDER: {choice!r}. Use anthropic or bedrock.")

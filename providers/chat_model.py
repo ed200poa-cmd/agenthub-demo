@@ -20,6 +20,12 @@ from langchain_core.language_models.chat_models import BaseChatModel
 
 DEFAULT_ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 
+# Bedrock model IDs are versioned and region-scoped. Newer Claude models
+# are served through cross-region inference profiles (the "us." prefix).
+# Confirm what the account can reach with:
+#   aws bedrock list-inference-profiles --region us-east-1
+DEFAULT_BEDROCK_MODEL = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+
 
 def get_chat_model(temperature: float = 0.0, max_tokens: int = 2048) -> BaseChatModel:
     choice = os.environ.get("LLM_PROVIDER", "anthropic").lower()
@@ -34,4 +40,14 @@ def get_chat_model(temperature: float = 0.0, max_tokens: int = 2048) -> BaseChat
             max_tokens=max_tokens,
         )
 
-    raise ValueError(f"Unknown LLM_PROVIDER: {choice!r}. Use anthropic.")
+    if choice == "bedrock":
+        from langchain_aws import ChatBedrockConverse
+
+        return ChatBedrockConverse(
+            model=os.environ.get("BEDROCK_MODEL_ID", DEFAULT_BEDROCK_MODEL),
+            region_name=os.environ.get("AWS_REGION", "us-east-1"),
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+
+    raise ValueError(f"Unknown LLM_PROVIDER: {choice!r}. Use anthropic or bedrock.")
