@@ -196,8 +196,8 @@ The provider is selected by the `LLM_PROVIDER` environment variable.
 | `LLM_PROVIDER` | Backing service | Agent tool calling | Connection check |
 |---|---|---|---|
 | `anthropic` (default) | Anthropic API | `ChatAnthropic` | `test_provider.py` |
-| `bedrock` | AWS Bedrock Runtime | `ChatBedrockConverse` | `test_provider.py` |
-| `vertexai` | Google Cloud Vertex AI | | `test_provider.py` |
+| `bedrock` | AWS Bedrock Runtime | `ChatBedrockConverse` | `test_provider.py`, verified |
+| `vertexai` | Google Cloud Vertex AI | | `test_provider.py`, verified |
 
 Providers in the **Agent tool calling** column return a LangChain `BaseChatModel`, so the agent's tool-calling logic is identical across them.
 
@@ -249,6 +249,22 @@ List the inference profiles the account can reach with:
 
 ```bash
 aws bedrock list-inference-profiles --region us-east-1
+```
+
+### Google Vertex AI
+
+Verified on `gemini-3.6-flash` at the `global` endpoint.
+
+```
+$ GCP_PROJECT_ID=<project> LLM_PROVIDER=vertexai python3 test_provider.py "What is 2+2?"
+[vertexai] 2 + 2 = 4
+```
+
+Authentication is Application Default Credentials:
+
+```bash
+gcloud auth application-default login
+gcloud services enable aiplatform.googleapis.com
 ```
 
 ### Azure Functions (`deploy/azure/`)
