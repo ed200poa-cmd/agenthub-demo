@@ -1,10 +1,9 @@
-import os
-from langchain_anthropic import ChatAnthropic
 from langchain.agents import create_tool_calling_agent, AgentExecutor
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import SystemMessage
 from agent.tools import ALL_TOOLS
 from agent.memory import get_memory
+from providers.chat_model import get_chat_model
 
 SYSTEM_PROMPT = """You are an AI sales agent for AgentHub. Your job is to help the sales team manage leads, score contacts, and automate CRM workflows.
 
@@ -38,12 +37,9 @@ def build_prompt() -> ChatPromptTemplate:
 
 
 def get_agent_executor(session_id: str) -> AgentExecutor:
-    llm = ChatAnthropic(
-        model="claude-haiku-4-5-20251001",
-        anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
-        temperature=0,
-        max_tokens=2048,
-    )
+    # Vendor is selected by the LLM_PROVIDER env var; everything below is
+    # unchanged because all providers return a LangChain BaseChatModel.
+    llm = get_chat_model(temperature=0, max_tokens=2048)
     prompt = build_prompt()
     agent = create_tool_calling_agent(llm=llm, tools=ALL_TOOLS, prompt=prompt)
     memory = get_memory(session_id)

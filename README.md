@@ -184,3 +184,78 @@ ZAPIER_WEBHOOK_URL=https://...     # Optional — simulated if not set
 - **GoHighLevel** (CRM webhook integration)
 - **Zapier** (automation webhook integration)
 - **Railway** (cloud deployment)
+
+---
+
+## Multi-Cloud Deployment
+
+### LLM providers
+
+The agent's chat model is selected by the `LLM_PROVIDER` environment variable. All three return a LangChain `BaseChatModel`, so tool calling is identical across them.
+
+| `LLM_PROVIDER` | Backing service | LangChain class |
+|---|---|---|
+| `anthropic` (default) | Anthropic API | `ChatAnthropic` |
+| `bedrock` | AWS Bedrock Runtime | `ChatBedrockConverse` |
+| `vertexai` | Google Cloud Vertex AI | `ChatGoogleGenerativeAI` |
+
+`anthropic` runs on the base install. `bedrock` and `vertexai` need the optional dependencies:
+
+```bash
+pip install -r providers/requirements-multicloud.txt
+```
+
+```env
+LLM_PROVIDER=anthropic                                    # anthropic | bedrock | vertexai
+ANTHROPIC_MODEL=claude-haiku-4-5-20251001
+BEDROCK_MODEL_ID=us.anthropic.claude-haiku-4-5-20251001-v1:0
+AWS_REGION=us-east-1
+GCP_PROJECT_ID=your-gcp-project
+GCP_LOCATION=us-central1
+VERTEX_MODEL_ID=gemini-3.6-flash
+```
+
+`test_provider.py` sends one prompt through a single provider to check credentials and model access:
+
+```bash
+LLM_PROVIDER=anthropic python3 test_provider.py "What is 2+2?"
+LLM_PROVIDER=bedrock   python3 test_provider.py "What is 2+2?"
+LLM_PROVIDER=vertexai  python3 test_provider.py "What is 2+2?"
+```
+
+### Azure Functions (`deploy/azure/`)
+
+HTTP trigger that answers a question using a document from Azure Blob Storage as context, generated with Azure OpenAI Service. Python v2 programming model.
+
+```bash
+cd deploy/azure
+cp local.settings.json.example local.settings.json
+pip install -r requirements.txt
+func start
+
+curl -X POST http://localhost:7071/api/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What is our refund policy?"}'
+```
+
+```bash
+func azure functionapp publish <function-app-name>
+```
+
+### Kubernetes (`deploy/k8s/`)
+
+Deployment and ClusterIP Service for the image built from this repository's Dockerfile.
+
+```bash
+docker build -t agenthub:local .
+k3d cluster create agenthub-cluster
+k3d image import agenthub:local -c agenthub-cluster
+
+kubectl create secret generic agenthub-secrets \
+  --from-literal=ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"
+kubectl apply -f deploy/k8s/deployment.yaml
+kubectl apply -f deploy/k8s/service.yaml
+
+kubectl port-forward svc/agenthub 8080:80
+curl http://localhost:8080/health
+```

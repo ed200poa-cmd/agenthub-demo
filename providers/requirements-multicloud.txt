@@ -1,0 +1,15 @@
+# Optional dependencies for the non-default LLM providers.
+#
+# The default provider (LLM_PROVIDER=anthropic) needs nothing from this
+# file, so it is kept out of the top-level requirements.txt and out of
+# the Railway image. Install it only when switching providers:
+#
+#   pip install -r providers/requirements-multicloud.txt
+
+# LLM_PROVIDER=bedrock
+boto3>=1.35.0
+langchain-aws>=0.2.0
+
+# LLM_PROVIDER=vertexai
+google-genai>=1.0.0
+langchain-google-genai>=4.0.0
