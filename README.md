@@ -223,6 +223,32 @@ LLM_PROVIDER=bedrock   python3 test_provider.py "What is 2+2?"
 LLM_PROVIDER=vertexai  python3 test_provider.py "What is 2+2?"
 ```
 
+### AWS Bedrock
+
+Verified on `us.anthropic.claude-haiku-4-5-20251001-v1:0` in `us-east-1`.
+
+```
+$ LLM_PROVIDER=bedrock python3 test_provider.py "What is 2+2?"
+[bedrock] 2 + 2 = 4
+```
+
+The agent's tool-calling path runs on the same model through `ChatBedrockConverse`:
+
+```
+> Entering new AgentExecutor chain...
+Invoking: `crm_lookup` with `{'query': 'sarah@example.com'}`
+No contacts found matching 'sarah@example.com'.
+> Finished chain.
+
+TOOLS CALLED: ['crm_lookup']
+```
+
+List the inference profiles the account can reach with:
+
+```bash
+aws bedrock list-inference-profiles --region us-east-1
+```
+
 ### Azure Functions (`deploy/azure/`)
 
 HTTP trigger that answers a question using a document from Azure Blob Storage as context, generated with Azure OpenAI Service. Python v2 programming model.

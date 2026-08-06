@@ -5,11 +5,24 @@
 # the Railway image. Install it only when switching providers:
 #
 #   pip install -r providers/requirements-multicloud.txt
+#
+# Upper bounds matter here. This project runs langchain 0.3.x, which
+# requires langchain-core <0.4.0. Provider packages built for
+# langchain-core 1.x pull that in and break the default agent path.
 
 # LLM_PROVIDER=bedrock
+# langchain-aws 0.2.x is the line that stays on langchain-core 0.3.x.
+# It raises pydantic to >=2.10.0, above the 2.9.2 pin in requirements.txt.
 boto3>=1.35.0
-langchain-aws>=0.2.0
+langchain-aws>=0.2.0,<0.3.0
 
 # LLM_PROVIDER=vertexai
+# google-genai has no langchain dependency and installs cleanly, so
+# test_provider.py works on its own.
 google-genai>=1.0.0
-langchain-google-genai>=4.0.0
+
+# The agent path needs ChatGoogleGenerativeAI with vertexai=True, which
+# ships in langchain-google-genai 4.x. That release requires
+# langchain-core >=1.5.1 and conflicts with langchain 0.3.x, so it is
+# left out until this project moves to langchain 1.x.
+# langchain-google-genai>=4.0.0
