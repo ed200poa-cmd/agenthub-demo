@@ -191,15 +191,17 @@ ZAPIER_WEBHOOK_URL=https://...     # Optional — simulated if not set
 
 ### LLM providers
 
-The agent's chat model is selected by the `LLM_PROVIDER` environment variable. All three return a LangChain `BaseChatModel`, so tool calling is identical across them.
+The provider is selected by the `LLM_PROVIDER` environment variable.
 
-| `LLM_PROVIDER` | Backing service | LangChain class |
-|---|---|---|
-| `anthropic` (default) | Anthropic API | `ChatAnthropic` |
-| `bedrock` | AWS Bedrock Runtime | `ChatBedrockConverse` |
-| `vertexai` | Google Cloud Vertex AI | `ChatGoogleGenerativeAI` |
+| `LLM_PROVIDER` | Backing service | Agent tool calling | Connection check |
+|---|---|---|---|
+| `anthropic` (default) | Anthropic API | `ChatAnthropic` | `test_provider.py` |
+| `bedrock` | AWS Bedrock Runtime | `ChatBedrockConverse` | `test_provider.py` |
+| `vertexai` | Google Cloud Vertex AI | | `test_provider.py` |
 
-`anthropic` runs on the base install. `bedrock` and `vertexai` need the optional dependencies:
+Providers in the **Agent tool calling** column return a LangChain `BaseChatModel`, so the agent's tool-calling logic is identical across them.
+
+`anthropic` runs on the base install. The others need the optional dependencies:
 
 ```bash
 pip install -r providers/requirements-multicloud.txt
