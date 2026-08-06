@@ -303,3 +303,19 @@ kubectl apply -f deploy/k8s/service.yaml
 kubectl port-forward svc/agenthub 8080:80
 curl http://localhost:8080/health
 ```
+
+Verified on k3s v1.35.5+k3s1 (k3d on Colima).
+
+```
+$ kubectl get pods
+NAME                        READY   STATUS    RESTARTS   AGE
+agenthub-76f5c4d9bd-4m7rj   1/1     Running   0          9s
+
+$ curl http://localhost:8080/health
+{"status":"ok","mode":"demo","anthropic_key_set":true,"supabase_connected":false}
+```
+
+`INCIDENT_LOG.md` records four failure modes reproduced against this
+Deployment, with the `kubectl` output for each: OOMKilled, a missing
+Secret, a readiness probe path mismatch, and an image tag that does not
+exist.
