@@ -33,7 +33,7 @@ class VertexAIProvider:
         model_id: str | None = None,
     ):
         self.project_id = project_id or os.environ["GCP_PROJECT_ID"]
-        self.location = location or os.environ.get("GCP_LOCATION", "us-central1")
+        self.location = location or os.environ.get("GCP_LOCATION", "global")
         self.model_id = model_id or os.environ.get("VERTEX_MODEL_ID", DEFAULT_MODEL_ID)
 
         self.client = genai.Client(
