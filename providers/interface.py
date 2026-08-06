@@ -55,4 +55,11 @@ def get_provider() -> LLMProvider:
 
         return BedrockProvider()
 
-    raise ValueError(f"Unknown LLM_PROVIDER: {choice!r}. Use anthropic or bedrock.")
+    if choice == "vertexai":
+        from .vertexai_provider import VertexAIProvider
+
+        return VertexAIProvider()
+
+    raise ValueError(
+        f"Unknown LLM_PROVIDER: {choice!r}. Use anthropic, bedrock, or vertexai."
+    )

@@ -26,6 +26,8 @@ DEFAULT_ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 #   aws bedrock list-inference-profiles --region us-east-1
 DEFAULT_BEDROCK_MODEL = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
 
+DEFAULT_VERTEX_MODEL = "gemini-3.6-flash"
+
 
 def get_chat_model(temperature: float = 0.0, max_tokens: int = 2048) -> BaseChatModel:
     choice = os.environ.get("LLM_PROVIDER", "anthropic").lower()
@@ -50,4 +52,18 @@ def get_chat_model(temperature: float = 0.0, max_tokens: int = 2048) -> BaseChat
             max_tokens=max_tokens,
         )
 
-    raise ValueError(f"Unknown LLM_PROVIDER: {choice!r}. Use anthropic or bedrock.")
+    if choice == "vertexai":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+
+        return ChatGoogleGenerativeAI(
+            model=os.environ.get("VERTEX_MODEL_ID", DEFAULT_VERTEX_MODEL),
+            vertexai=True,
+            project=os.environ["GCP_PROJECT_ID"],
+            location=os.environ.get("GCP_LOCATION", "us-central1"),
+            temperature=temperature,
+            max_output_tokens=max_tokens,
+        )
+
+    raise ValueError(
+        f"Unknown LLM_PROVIDER: {choice!r}. Use anthropic, bedrock, or vertexai."
+    )
