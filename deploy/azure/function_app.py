@@ -18,7 +18,7 @@ import azure.functions as func
 from azure.storage.blob import BlobServiceClient
 from openai import AzureOpenAI
 
-app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
 CONTAINER_NAME = "documents"
 
@@ -111,8 +111,7 @@ def ask(req: func.HttpRequest) -> func.HttpResponse:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            temperature=0,
-            max_tokens=500,
+            max_completion_tokens=500,
         )
         answer = completion.choices[0].message.content
     except Exception as exc:  # noqa: BLE001 - surface LLM errors to the caller

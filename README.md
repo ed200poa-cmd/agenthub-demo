@@ -269,22 +269,77 @@ gcloud services enable aiplatform.googleapis.com
 
 ### Azure Functions (`deploy/azure/`)
 
-HTTP trigger that answers a question using a document from Azure Blob Storage as context, generated with Azure OpenAI Service. Python v2 programming model.
+HTTP trigger that answers a question using a document from Azure Blob Storage as context, generated with Azure OpenAI Service. Python v2 programming model, Consumption plan, Python 3.12 runtime. The route runs at `AuthLevel.FUNCTION`, so requests carry a function key.
+
+Local run:
 
 ```bash
 cd deploy/azure
 cp local.settings.json.example local.settings.json
 pip install -r requirements.txt
 func start
+```
 
-curl -X POST http://localhost:7071/api/ask \
+Provision and deploy:
+
+```bash
+az group create --name agenthub-azure-rg --location eastus
+
+az cognitiveservices account create --name <openai-resource> \
+  --resource-group agenthub-azure-rg --kind OpenAI --sku S0 --location eastus
+
+az cognitiveservices account list-models --name <openai-resource> \
+  --resource-group agenthub-azure-rg --output table
+az cognitiveservices usage list --location eastus --output table
+
+az cognitiveservices account deployment create --name <openai-resource> \
+  --resource-group agenthub-azure-rg --deployment-name <deployment> \
+  --model-name <model> --model-version <version> --model-format OpenAI \
+  --sku-capacity 1 --sku-name GlobalStandard
+
+az storage account create --name <storage-account> \
+  --resource-group agenthub-azure-rg --location eastus --sku Standard_LRS
+az storage container create --name documents --account-name <storage-account>
+
+az functionapp create --resource-group agenthub-azure-rg \
+  --consumption-plan-location eastus --runtime python --runtime-version 3.12 \
+  --functions-version 4 --name <function-app> --storage-account <storage-account> \
+  --os-type linux
+
+az functionapp config appsettings set --name <function-app> \
+  --resource-group agenthub-azure-rg --settings \
+  AZURE_OPENAI_ENDPOINT="<endpoint>" AZURE_OPENAI_KEY="<key>" \
+  AZURE_OPENAI_DEPLOYMENT="<deployment>" \
+  AZURE_STORAGE_CONNECTION_STRING="<connection-string>"
+
+func azure functionapp publish <function-app> --build remote --python
+```
+
+Upload a document and query it:
+
+```bash
+az storage blob upload --account-name <storage-account> \
+  --container-name documents --name policy.txt --file sample-docs/policy.txt
+
+curl -X POST https://<function-app>.azurewebsites.net/api/ask \
   -H "Content-Type: application/json" \
+  -H "x-functions-key: <function-key>" \
   -d '{"question": "What is our refund policy?"}'
 ```
 
-```bash
-func azure functionapp publish <function-app-name>
+Verified response:
+
+```json
+{
+  "question": "What is our refund policy?",
+  "source_document": "policy.txt",
+  "answer": "Our refund policy:\n- Full refunds may be requested within 30 days of purchase only if the product has not been used.\n- After 30 days, refunds are issued as store credit only.\n- Digital products are non-refundable once downloaded.\n- To request a refund, contact support@example.com with your order number.\n- Refunds are processed within 5 to 7 business days."
+}
 ```
+
+Without a function key the route returns `401`. An empty `question` returns `400`.
+
+`az cognitiveservices account list-models` includes models that are past their retirement date, and per-model quota on a new subscription can be zero. Check both before choosing a deployment: `list-models` for the version and `usage list` for available capacity.
 
 ### Kubernetes (`deploy/k8s/`)
 
