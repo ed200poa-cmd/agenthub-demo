@@ -8,3 +8,14 @@ __pycache__/
 dist/
 build/
 .pytest_cache/
+
+# Secrets and local artifacts
+.env.*
+!.env.example
+local.settings.json
+*.pem
+*.key
+*.p8
+credentials*.json
+service-account*.json
+.azure/
