@@ -4,7 +4,7 @@ A production-ready AI agent platform that integrates LangChain, Claude API, Supa
 
 **Built by Edward Kim — AI Automation Developer**
 
-**Live demo: [https://agenthub-demo-production.up.railway.app](https://agenthub-demo-production.up.railway.app)**
+**Live: [https://agenthub-demo-production.up.railway.app](https://agenthub-demo-production.up.railway.app)**
 
 ---
 
